@@ -1,0 +1,43 @@
+name: Release
+
+permissions: read-all
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+    
+      - name: Publish
+        run: dotnet publish --configuration Release
+
+      - name: Archive publish files
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish
+          path: ./FPSSoftware.Server/bin/Release/net8.0/publish/
+          retention-days: 5
+
+      - name: Replace values on appsettings.json
+        run: |
+          sed -i 's|"sourceToken": ".*"|"sourceToken": "${{ secrets.BETTERSTACK_SOURCE_TOKEN }}"|' ${{ github.workspace }}\FPSSoftware.Server\bin\Release\net8.0\publish\appsettings.json |
+          sed -i 's|"betterStackEndpoint": ".*"|"betterStackEndpoint": "${{ secrets.BETTERSTACK_ENDPOINT }}"|' ${{ github.workspace }}\FPSSoftware.Server\bin\Release\net8.0\publish\appsettings.json
+
+      - name: Deploy
+        uses: ChristopheLav/iis-deploy@v1
+        with:
+          website-name: 'felipesoares-001-site6'
+          msdeploy-service-url: ${{ secrets.FTP_SERVER }}
+          msdeploy-username: ${{ secrets.FTP_USERNAME }}
+          msdeploy-password: ${{ secrets.FTP_PASSWORD }}
+          source-path: ${{ github.workspace }}\FPSSoftware.Server\bin\Release\net8.0\publish\
+          skip-extra-files: 0
