@@ -18,48 +18,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-
-    - name: Restore dependencies
-      run: dotnet restore
-
-    - name: Build backend application
-      run: dotnet build --configuration Debug --no-restore
-
-  unit-tests:
-    needs: [build]
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
     
-    - name: Run .Net tests
-      run: dotnet test --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./fps-software
+        
+      - name: Build Next.js
+        run: npm run build
+        working-directory: ./fps-software
 
-    - name: Upload Test Results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results
-        path: ${{ github.workspace }}/**/TestResults/**/*
-        retention-days: 5
-
-    - name: Publish Test Summary
-      uses: dorny/test-reporter@v1
-      continue-on-error: true
-      if: always()
-      with:
-        name: Test Results
-        path: "${{ github.workspace }}/**/*.trx"
-        reporter: dotnet-trx
-        fail-on-error: false
+      - name: Archive publish files
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish
+          path: ./fps-software/.next
+          retention-days: 5
