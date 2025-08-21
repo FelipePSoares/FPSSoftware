@@ -40,5 +40,5 @@ jobs:
           msdeploy-service-url: ${{ secrets.FTP_SERVER }}
           msdeploy-username: ${{ secrets.FTP_USERNAME }}
           msdeploy-password: ${{ secrets.FTP_PASSWORD }}
-          source-path: ${{ github.workspace }}\fps-software\.next
+          source-path: ${{ github.workspace }}\fps-software
           skip-extra-files: 0
