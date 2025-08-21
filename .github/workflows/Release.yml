@@ -30,7 +30,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: publish
-          path: ./fps-software/.next
+          path: ${{ github.workspace }}\fps-software\.next
           retention-days: 5
 
       - name: Deploy
