@@ -4,7 +4,7 @@ permissions: read-all
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -12,25 +12,26 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          dotnet-version: 8.0.x
+          node-version: 20
     
-      - name: Publish
-        run: dotnet publish --configuration Release
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./fps-software
+        
+      - name: Build Next.js
+        run: npm run build
+        working-directory: ./fps-software
 
       - name: Archive publish files
         uses: actions/upload-artifact@v4
         with:
           name: publish
-          path: ./FPSSoftware.Server/bin/Release/net8.0/publish/
+          path: ./fps-software/.next
           retention-days: 5
-
-      - name: Replace values on appsettings.json
-        run: |
-          sed -i 's|"sourceToken": ".*"|"sourceToken": "${{ secrets.BETTERSTACK_SOURCE_TOKEN }}"|' ${{ github.workspace }}\FPSSoftware.Server\bin\Release\net8.0\publish\appsettings.json |
-          sed -i 's|"betterStackEndpoint": ".*"|"betterStackEndpoint": "${{ secrets.BETTERSTACK_ENDPOINT }}"|' ${{ github.workspace }}\FPSSoftware.Server\bin\Release\net8.0\publish\appsettings.json
 
       - name: Deploy
         uses: ChristopheLav/iis-deploy@v1
@@ -39,5 +40,5 @@ jobs:
           msdeploy-service-url: ${{ secrets.FTP_SERVER }}
           msdeploy-username: ${{ secrets.FTP_USERNAME }}
           msdeploy-password: ${{ secrets.FTP_PASSWORD }}
-          source-path: ${{ github.workspace }}\FPSSoftware.Server\bin\Release\net8.0\publish\
+          source-path: ${{ github.workspace }}\fps-software\.next
           skip-extra-files: 0
